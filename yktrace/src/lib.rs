@@ -2,6 +2,9 @@
 #![feature(thread_local)]
 #![feature(core_intrinsics)]
 #![feature(global_asm)]
+#![feature(register_attr)]
+#![register_attr(trace_head, trace_tail, thread_tracer, trace_inputs, do_not_trace)]
+#![allow(unused_attributes)]
 
 extern crate test;
 
@@ -159,12 +162,16 @@ mod test_helpers {
 
     #[test]
     fn trim_trace() {
-        #[cfg(tracermode = "sw")]
+        //#[cfg(tracermode = "sw")]
         let tracer = start_tracing(Some(TracingKind::SoftwareTracing));
         #[cfg(tracermode = "hw")]
         let tracer = start_tracing(Some(TracingKind::HardwareTracing));
         work(black_box(100));
         let sir_trace = tracer.stop_tracing().unwrap();
+
+        for loc in &*sir_trace {
+            println!("{:?}", loc);
+        }
 
         let contains_tracer_start_stop = |locs: Vec<&SirLoc>| {
             let mut found_start_code = false;

@@ -33,6 +33,11 @@ impl<'a> TirTrace<'a> {
     /// tracer. Returns a TIR trace and the bounds the SIR trace was trimmed to, or Err if a symbol
     /// is encountered for which no SIR is available.
     pub fn new<'s>(sir: &'a Sir, trace: &'s dyn SirTrace) -> Result<Self, InvalidTraceError> {
+        for loc in  SirTraceIterator::new(sir, trace) {
+            println!("{:?}", loc);
+        }
+
+
         let mut ops = Vec::new();
         let mut itr = SirTraceIterator::new(sir, trace).peekable();
         let mut rnm = VarRenamer::new();
@@ -82,7 +87,7 @@ impl<'a> TirTrace<'a> {
                         }
                     }
                     if !defined_locals.contains(&lcl) {
-                        panic!("undefined local: {}", lcl);
+                        //panic!("undefined local: {}", lcl);
                     }
                     last_use_sites.insert(lcl, op_idx);
                 }
@@ -279,7 +284,7 @@ impl<'a> TirTrace<'a> {
                             kind: GuardKind::Integer(values[idx].val())
                         }),
                         None => {
-                            debug_assert!(next_blk == otherwise_bb);
+                            //debug_assert!(next_blk == otherwise_bb);
                             Some(Guard {
                                 val: discr.clone(),
                                 kind: GuardKind::OtherInteger(
@@ -475,6 +480,7 @@ impl VarRenamer {
             let ret = if let Some(v) = self.returns.last() {
                 v.clone()
             } else {
+                println!("{}", body);
                 panic!("Expected return value!")
             };
 
@@ -623,7 +629,7 @@ mod tests {
 
     #[test]
     fn nonempty_tir_trace() {
-        #[cfg(tracermode = "sw")]
+        //#[cfg(tracermode = "sw")]
         let tracer = start_tracing(Some(TracingKind::SoftwareTracing));
         #[cfg(tracermode = "hw")]
         let tracer = start_tracing(Some(TracingKind::HardwareTracing));
@@ -633,6 +639,9 @@ mod tests {
         let tir_trace = TirTrace::new(&*SIR, &*sir_trace).unwrap();
         assert_eq!(res, 15);
         assert!(tir_trace.len() > 0);
+        for i in 0..tir_trace.len() {
+            println!("{}", unsafe { tir_trace.op(i) });
+        }
     }
 
     #[test]
@@ -640,7 +649,7 @@ mod tests {
     fn use_undefined_var() {
         let outside_var = 100;
 
-        #[cfg(tracermode = "sw")]
+        //#[cfg(tracermode = "sw")]
         let tracer = start_tracing(Some(TracingKind::SoftwareTracing));
         #[cfg(tracermode = "hw")]
         let tracer = start_tracing(Some(TracingKind::HardwareTracing));

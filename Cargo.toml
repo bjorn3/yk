@@ -1,7 +1,7 @@
 [workspace]
 members=[
     "ykpack",
-    "ykrt",
+    #"ykrt",
     "yktrace",
     # Disabled for now to focus on code-gen.
     #"tiri",
