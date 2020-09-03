@@ -1,6 +1,5 @@
 //! Loading and tracing of Serialised Intermediate Representation (SIR).
 
-use elf;
 use fallible_iterator::FallibleIterator;
 use std::{
     collections::{HashMap, HashSet},
@@ -9,9 +8,11 @@ use std::{
     fmt::{self, Debug, Display, Write},
     io::Cursor,
     iter::Iterator,
-    path::Path
+    path::Path, fs::File
 };
 use ykpack::{self, bodyflags, Body, CguHash, Decoder, Local, Pack, Ty};
+use memmap::Mmap;
+use object::{ObjectSection, Object}; // FIXME kill.
 
 /// The serialised IR loaded in from disk. One of these structures is generated in the above
 /// `lazy_static` and is shared immutably for all threads.
@@ -64,7 +65,9 @@ lazy_static! {
 
 impl Sir {
     pub fn read_file(file: &Path) -> Result<Sir, ()> {
-        let ef = elf::File::open_path(file).unwrap();
+        // SAFETY: Not really, we hope that nobody changes the file underneath our feet.
+        let data = unsafe { Mmap::map(&File::open(file).unwrap()).unwrap() };
+        let object = object::File::parse(&*data).unwrap();
 
         // We iterate over ELF sections, looking for ones which contain SIR and loading them into
         // memory.
@@ -73,9 +76,9 @@ impl Sir {
         let mut trace_heads = Vec::new();
         let mut trace_tails = Vec::new();
         let mut thread_tracers = HashSet::new();
-        for sec in &ef.sections {
-            if sec.shdr.name.starts_with(".yksir_") {
-                let mut curs = Cursor::new(&sec.data);
+        for sec in object.sections() {
+            if sec.name().unwrap().starts_with(".yksir_") {
+                let mut curs = Cursor::new(sec.data().unwrap());
                 let mut dec = Decoder::from(&mut curs);
 
                 while let Some(pack) = dec.next().unwrap() {

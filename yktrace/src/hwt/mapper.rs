@@ -1,4 +1,4 @@
-use object::Object;
+use object::{ObjectSection, Object};
 use phdrs::objects;
 
 use crate::sir::SirLoc;
@@ -94,17 +94,18 @@ fn extract_labels() -> Result<Vec<(u64, (String, u32))>, gimli::Error> {
     // Extract labels
     let mut labels = Vec::new();
 
-    let loader = |id: gimli::SectionId| -> Result<borrow::Cow<[u8]>, gimli::Error> {
+    let loader = |id: gimli::SectionId| -> Result<&[u8], gimli::Error> {
         Ok(object
-            .section_data_by_name(id.name())
-            .unwrap_or(borrow::Cow::Borrowed(&[][..])))
+            .section_by_name(id.name())
+            .map(|sec| sec.data().expect("failed to decompress section"))
+            .unwrap_or(&[] as &[u8]))
     };
-    let sup_loader = |_| Ok(borrow::Cow::Borrowed(&[][..]));
+    let sup_loader = |_| Ok(&[] as &[u8]);
     let dwarf_cow = gimli::Dwarf::load(&loader, &sup_loader)?;
     let borrow_section: &dyn for<'a> Fn(
-        &'a borrow::Cow<[u8]>
+        &&'a [u8]
     ) -> gimli::EndianSlice<'a, gimli::RunTimeEndian> =
-        &|section| gimli::EndianSlice::new(&*section, endian);
+        &|section| gimli::EndianSlice::new(section, endian);
     let dwarf = dwarf_cow.borrow(&borrow_section);
     let mut iter = dwarf.units();
     let mut subaddr = None;
