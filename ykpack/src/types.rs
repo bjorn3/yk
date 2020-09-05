@@ -42,6 +42,10 @@ pub enum Ty {
     Bool,
     /// Anything that we've not yet defined a lowering for.
     Unimplemented(String),
+    ByteArray {
+        size: u64,
+        align: u64,
+    }
 }
 
 impl Display for Ty {
@@ -54,6 +58,7 @@ impl Display for Ty {
             Ty::Ref(rty) => write!(f, "&{:?}", rty),
             Ty::Bool => write!(f, "bool"),
             Ty::Unimplemented(m) => write!(f, "Unimplemented: {}", m),
+            Ty::ByteArray { size, align } => write!(f, "{} bytes (align {})", size, align),
         }
     }
 }
@@ -81,7 +86,8 @@ impl Ty {
             Ty::Tuple(tty) => u64::try_from(tty.size_align.size).unwrap(),
             Ty::Ref(_) => u64::try_from(mem::size_of::<usize>()).unwrap(),
             Ty::Bool => u64::try_from(mem::size_of::<bool>()).unwrap(),
-            _ => todo!("{:?}", self),
+            Ty::ByteArray { size, align: _ } => *size,
+            Ty::Unimplemented(_) => todo!("{:?}", self),
         }
     }
 
@@ -119,6 +125,7 @@ impl Ty {
                 8
             }
             Ty::Bool => u64::try_from(mem::size_of::<bool>()).unwrap(),
+            Ty::ByteArray { size: _, align } => *align,
             _ => todo!("{:?}", self),
         }
     }

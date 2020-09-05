@@ -164,7 +164,7 @@ impl<TT> TraceCompiler<TT> {
                 _ => true,
             },
             Ty::Ref(_) | Ty::Bool => true,
-            Ty::Struct(..) | Ty::Tuple(..) => false,
+            Ty::Struct(..) | Ty::Tuple(..) | Ty::ByteArray { .. } => false,
             Ty::Unimplemented(..) => todo!("{}", ty),
         }
     }
