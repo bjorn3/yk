@@ -2,10 +2,6 @@ use std::{ffi::c_void, marker::PhantomData};
 
 use yktrace::InvalidTraceError;
 
-// Force ykrt_internal to be linked
-#[allow(unused_imports)]
-use ykrt_internal;
-
 extern "C" {
     fn __ykrt_start_tracing(tracing_kind: u8) -> *mut c_void;
     fn __ykrt_stop_tracing(tracer: *mut c_void) -> *mut c_void;
@@ -33,8 +29,8 @@ pub(crate) fn start_tracing(tracing_kind: TracingKind) -> ThreadTracer {
 impl ThreadTracer {
     pub(crate) fn stop_tracing(self) -> Result<SirTrace, InvalidTraceError> {
         unsafe { Ok(SirTrace(__ykrt_stop_tracing(self.0))) }
-        }
     }
+}
 
 pub(crate) struct SirTrace(*mut c_void);
 
