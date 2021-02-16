@@ -82,6 +82,9 @@ unsafe extern "C" fn __yk_swt_rec_func_addr_impl(symbol_name: *const i8, func_ad
     });
 }
 
+#[no_mangle]
+unsafe extern "C" fn __yk_swt_rec_func_addr(symbol_name: *const i8, func_addr: u64) {}
+
 /// Record a location into the trace buffer if tracing is enabled on the current thread.
 ///
 /// This function is separate from `__yk_swt_rec_loc_impl` to keep register spilling off the

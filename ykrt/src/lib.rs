@@ -1,4 +1,7 @@
 #![cfg_attr(test, feature(test))]
+#![feature(register_attr)]
+#![register_attr(trace_debug)]
+#![register_attr(interp_step)]
 
 mod location;
 pub mod mt;
