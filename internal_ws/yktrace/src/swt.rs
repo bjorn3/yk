@@ -48,7 +48,8 @@ pub(crate) fn start_tracing() -> ThreadTracer {
 #[derive(Copy, Clone)]
 struct SwtLoc {
     symbol_name: *const i8,
-    bb_idx: u32
+    bb_idx: u32,
+    addr: u64,
 }
 
 thread_local! {
@@ -60,6 +61,26 @@ thread_local! {
 #[thread_local]
 #[no_mangle]
 static mut __YK_SWT_ACTIVE: bool = false;
+
+#[no_mangle]
+unsafe extern "C" fn __yk_swt_rec_func_addr(symbol_name: *const i8, func_addr: u64) {
+    if !__YK_SWT_ACTIVE {
+        return;
+    }
+
+    __yk_swt_rec_func_addr_impl(symbol_name, func_addr);
+}
+
+#[no_mangle]
+unsafe extern "C" fn __yk_swt_rec_func_addr_impl(symbol_name: *const i8, func_addr: u64) {
+    TRACE_BUF.with(|trace_buf| {
+        trace_buf.push(SwtLoc {
+            symbol_name,
+            bb_idx: 0,
+            addr: func_addr,
+        });
+    });
+}
 
 /// Record a location into the trace buffer if tracing is enabled on the current thread.
 ///
@@ -122,7 +143,8 @@ unsafe extern "C" fn __yk_swt_rec_loc_impl(symbol_name: *const i8, bb_idx: u32) 
     TRACE_BUF.with(|trace_buf| {
         trace_buf.push(SwtLoc {
             symbol_name,
-            bb_idx
+            bb_idx,
+            addr: 0,
         });
     });
 }
@@ -164,7 +186,7 @@ mod trace_buffer {
                     SirLoc {
                         symbol_name: symbol_name.to_str().unwrap(),
                         bb_idx: swt_loc.bb_idx,
-                        addr: None
+                        addr: Some(swt_loc.addr),
                     }
                 })
                 .collect()
