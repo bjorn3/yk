@@ -522,6 +522,7 @@ impl VarRenamer {
             renamed,
             body.local_decls[usize::try_from(local.0).unwrap()].clone()
         );
+        //println!("{}:{} -> {}", &body.symbol_name, local, renamed);
         self.sir_map.insert(renamed, local.clone());
         renamed
     }
