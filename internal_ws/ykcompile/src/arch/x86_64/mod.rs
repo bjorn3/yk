@@ -419,7 +419,7 @@ impl TraceCompiler {
         match self
             .variable_location_map
             .get(local)
-            .expect("freeing unallocated register")
+            .unwrap_or_else(|| panic!("freeing unallocated register for local {:?}", local))
         {
             Location::Reg(reg) => {
                 // This local is currently stored in a register, so free the register.
@@ -1358,6 +1358,7 @@ impl TraceCompiler {
     }
 
     fn compile(mut tt: TirTrace, debug: bool) -> dynasmrt::ExecutableBuffer {
+        println!("{}", tt);
         let mut tc: Self = TraceCompiler::new(
             tt.local_decls.clone(),
             tt.addr_map.drain().into_iter().collect(),

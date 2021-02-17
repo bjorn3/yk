@@ -18,13 +18,23 @@ pub use ykpack::{
 };
 
 /// A TIR trace is conceptually a straight-line path through the SIR with guarded speculation.
-#[derive(Debug)]
 pub struct TirTrace<'a, 'm> {
     ops: Vec<TirOp>,
     /// Maps each local variable to its declaration, including type.
     pub local_decls: HashMap<Local, LocalDecl>,
     pub addr_map: HashMap<String, u64>,
     sir: &'a Sir<'m>
+}
+
+impl fmt::Debug for TirTrace<'_, '_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TirTrace")
+            .field("ops", &self.ops)
+            .field("local_decls", &self.local_decls)
+            .field("addr_map", &self.addr_map)
+            .field("sir", &"<...>")
+            .finish()
+    }
 }
 
 impl<'a, 'm> TirTrace<'a, 'm> {

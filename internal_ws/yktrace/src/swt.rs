@@ -82,9 +82,6 @@ unsafe extern "C" fn __yk_swt_rec_func_addr_impl(symbol_name: *const i8, func_ad
     });
 }
 
-#[no_mangle]
-unsafe extern "C" fn __yk_swt_rec_func_addr(symbol_name: *const i8, func_addr: u64) {}
-
 /// Record a location into the trace buffer if tracing is enabled on the current thread.
 ///
 /// This function is separate from `__yk_swt_rec_loc_impl` to keep register spilling off the
@@ -186,6 +183,7 @@ mod trace_buffer {
                 .drain(..)
                 .map(|swt_loc| {
                     let symbol_name = unsafe { std::ffi::CStr::from_ptr(swt_loc.symbol_name) };
+                    println!("{} {} {}", symbol_name.to_str().unwrap(), swt_loc.bb_idx, swt_loc.addr);
                     SirLoc {
                         symbol_name: symbol_name.to_str().unwrap(),
                         bb_idx: swt_loc.bb_idx,
