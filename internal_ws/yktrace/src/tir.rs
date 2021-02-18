@@ -88,7 +88,7 @@ impl<'a, 'm> TirTrace<'a, 'm> {
             // this function into a `Call` if the user decides not to trace it.
             let addr = &loc.addr;
             if user_bb_idx_usize == 0 {
-                //addr_map.insert(loc.symbol_name.to_string(), addr.unwrap());
+                addr_map.insert(loc.symbol_name.to_string(), addr.unwrap());
             }
 
             // If a function was annotated with `do_not_trace`, skip all instructions within it as

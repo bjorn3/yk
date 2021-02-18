@@ -78,13 +78,13 @@ fn run_action(workspace: Workspace, target: &str, extra_args: &[String]) {
             }
         }
         "build" | "check" | "test" => {
-            // Ensure that the whole workspace is tested and not just the base crate in the
-            // workspace.
-            if target == "test" {
-                cmd.arg("--workspace");
-            }
-
             if workspace == Workspace::Internal {
+                // Ensure that the whole workspace is tested and not just the base crate in the
+                // workspace.
+                if target == "test" {
+                    cmd.arg("--workspace");
+                }
+
                 let tracing_kind = find_tracing_kind(&rust_flags);
                 rust_flags = make_internal_rustflags(&rust_flags);
 
